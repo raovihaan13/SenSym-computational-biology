@@ -48,11 +48,9 @@ def sample_counts(lam: float, n_samples: int, rng: np.random.Generator) -> np.nd
     >>> sample_counts(3.0, 5, np.random.default_rng(0))
     array([...])
     """
-    # --- YOUR CODE HERE ---
-    # 1. Reject a negative lam with a ValueError whose message includes the
-    #    offending value (a good error message names the bad input).
-    # 2. Return rng.poisson(lam, size=n_samples). One line — the interesting
-    #    part is the experiment you run with it, not the call.
+    if lam < 0:
+        raise ValueError(f"lam must be non-negative, got {lam}")
+    return rng.poisson(lam, size=n_samples)
     raise NotImplementedError("Implement me! See docs/s/week01.html — and try before peeking at python/solutions/.")
 
 
@@ -76,14 +74,12 @@ def fano_factor(samples: Sequence[float]) -> float:
     ------
     ValueError if the sample mean is zero (the ratio is undefined).
     """
-    # --- YOUR CODE HERE ---
-    # 1. Convert to a float numpy array (np.asarray(..., dtype=float)).
-    # 2. Compute the mean. If it is 0, raise ValueError — you cannot divide.
-    # 3. Compute the variance with ddof=1 (x.var(ddof=1)). Why ddof=1: the
-    #    default ddof=0 divides by n instead of n-1 and is biased LOW by a
-    #    factor (n-1)/n. At the n = 50 used in Week 1's lab that is a 2%
-    #    bias — visible, and exactly the size of the effect you are hunting.
-    # 4. Return the ratio as a plain float.
+    np.asarray(samples, dtype=float)
+    mean = np.mean(samples)
+    if mean == 0:
+        raise ValueError("Sample mean is zero; Fano factor undefined.")
+    variance = np.var(samples, ddof=1)
+    return float(variance / mean)
     raise NotImplementedError("Implement me! See docs/s/week01.html — and try before peeking at python/solutions/.")
 
 
@@ -108,14 +104,12 @@ def poisson_logpmf(k, lam: float) -> np.ndarray:
     -------
     numpy array of log-probabilities, same shape as k.
     """
-    # --- YOUR CODE HERE ---
-    # 1. k = np.asarray(k), so the function works on scalars and arrays alike.
-    # 2. Reject lam < 0 with a ValueError.
-    # 3. Handle lam == 0 separately: all the mass sits on k = 0, so return
-    #    0.0 (that is log 1) where k == 0 and -inf elsewhere. np.where does
-    #    this in one line. Without this branch, log(0) warns and poisons the
-    #    array with NaN.
-    # 4. Otherwise return  k*np.log(lam) - lam - gammaln(k + 1).
+    k=np.asarray(k)
+    if lam < 0:
+        raise ValueError(f"lam must be non-negative, got {lam}")
+    if lam == 0:
+        return np.where(k == 0, 0.0, -np.inf)
+    return k * np.log(lam) - lam - gammaln(k + 1)
     raise NotImplementedError("Implement me! See docs/s/week02.html — and try before peeking at python/solutions/.")
 
 
@@ -126,8 +120,7 @@ def poisson_pmf(k, lam: float) -> np.ndarray:
     the exact-error calculation in Week 4 wants probabilities, while the
     classifier in Week 5 wants logs.
     """
-    # --- YOUR CODE HERE ---
-    # 1. Return np.exp(poisson_logpmf(k, lam)).
+    return np.exp(poisson_logpmf(k, lam))
     raise NotImplementedError("Implement me! See docs/s/week02.html — and try before peeking at python/solutions/.")
 
 
@@ -158,14 +151,12 @@ def downsample_counts(counts, keep_prob: float, rng: np.random.Generator) -> np.
     ------
     ValueError if keep_prob is outside [0, 1], or any count is negative.
     """
-    # --- YOUR CODE HERE ---
-    # 1. Validate keep_prob is in [0, 1]; raise ValueError if not.
-    # 2. counts = np.asarray(counts); raise ValueError if any entry < 0.
-    # 3. The thinning IS a binomial draw: each of the `count` molecules is an
-    #    independent coin flip. So return
-    #       rng.binomial(counts.astype(np.int64), keep_prob)
-    #    numpy broadcasts this elementwise over an array of any shape, which
-    #    is why the same function thins one gene or a whole matrix.
+    if not (0 <= keep_prob <= 1):
+        raise ValueError(f"keep_prob must be in [0, 1], got {keep_prob}")
+    counts = np.asarray(counts)
+    if np.any(counts < 0):
+        raise ValueError("All counts must be non-negative.")
+    return rng.binomial(counts.astype(np.int64), keep_prob)
     raise NotImplementedError("Implement me! See docs/s/week02.html — and try before peeking at python/solutions/.")
 
 
