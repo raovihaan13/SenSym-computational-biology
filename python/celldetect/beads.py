@@ -77,19 +77,42 @@ def validate_tally(records: List[dict]) -> List[str]:
     (remember the header is line 1, so record i is line i+2). An empty list
     means the tally is clean.
     """
-    # --- YOUR CODE HERE ---
-    # 1. problems = []; seen = set(); by_run = {}.
-    # 2. Loop with enumerate(records) so you have the index i; the CSV line
-    #    number is i + 2.
-    # 3. Check the jar labels first and `continue` if they are bad — the
-    #    later checks assume they are valid.
-    # 4. expected = int(r["true_jar"] == r["guess"]); if it differs from
-    #    r["correct"], append a message quoting all three values.
-    # 5. key = (run, trial): if already in `seen`, report a duplicate.
-    # 6. Collect the true_jar values per run in by_run.
-    # 7. After the loop: for each run with more than ~4 trials, if
-    #    len(set(jars)) == 1, report that the jar was not randomized.
-    # 8. Return problems.
+    problems = []
+    seen = set()
+    by_run = {}
+    for i, r in enumerate(records):
+        line_num = i + 2
+        run = r["run"]
+        trial = r["trial"]
+        true_jar = r["true_jar"]
+        guess = r["guess"]
+        correct = r["correct"]
+
+        # Check jar labels
+        if true_jar not in {"A", "B"}:
+            problems.append(f"Line {line_num}: invalid true_jar '{true_jar}'")
+            continue
+        if guess not in {"A", "B"}:
+            problems.append(f"Line {line_num}: invalid guess '{guess}'")
+            continue
+
+        # Check correctness
+        expected_correct = int(true_jar == guess)
+        if expected_correct != correct:
+            problems.append(
+                f"Line {line_num}: correct={correct} disagrees with "
+                f"true_jar={true_jar} and guess={guess}"
+            )
+
+        # Check for duplicates
+        key = (run, trial)
+        if key in seen:
+            problems.append(f"Line {line_num}: duplicate (run, trial) {key}")
+        else:
+            seen.add(key)
+
+        # Collect true_jar values per run
+        by_run.setdefault(run, []).append(true_jar)
     raise NotImplementedError("Implement me! See docs/s/week06.html — and try before peeking at python/solutions/.")
 
 
@@ -110,6 +133,7 @@ def accuracy_by_n(records: List[dict], dropout: float = 0.0
     #    one (compare floats with a tolerance: abs(a - b) > 1e-9).
     # 3. k, t = out.get(r["n"], (0, 0)); out[r["n"]] = (k + r["correct"], t + 1).
     # 4. Return dict(sorted(out.items())).
+
     raise NotImplementedError("Implement me! See docs/s/week12.html — and try before peeking at python/solutions/.")
 
 
@@ -133,13 +157,12 @@ def bead_d_prime(n: int, p_a: float, p_b: float, dropout: float = 0.0) -> float:
     ------
     ValueError if dropout is not in [0, 1).
     """
-    # --- YOUR CODE HERE ---
-    # 1. Validate dropout.
-    # 2. n_eff = n * (1 - dropout); pbar = (p_a + p_b) / 2.
-    # 3. var = pbar * (1 - pbar). If var <= 0 or n_eff <= 0, return 0.0.
-    # 4. Return sqrt(n_eff) * |p_a - p_b| / sqrt(var), as a float.
-    #    Hand-check before trusting it: n = 100, p = .30 vs .35 must give
-    #    10 * 0.05 / sqrt(0.325 * 0.675) = 0.688...
+    n_eff = n * (1 - dropout)
+    pbar = (p_a + p_b) / 2
+    var = pbar * (1 - pbar)
+    if var <= 0 or n_eff <= 0:
+        return 0.0
+    return float(np.sqrt(n_eff) * abs(p_a - p_b) / np.sqrt(var))
     raise NotImplementedError("Implement me! See docs/s/week06.html — and try before peeking at python/solutions/.")
 
 
@@ -151,8 +174,7 @@ def predicted_accuracy(n: int, p_a: float, p_b: float, dropout: float = 0.0) -> 
     80% — and knowing that in advance is what sets the trial budget instead
     of discovering it after a wasted month.
     """
-    # --- YOUR CODE HERE ---
-    # 1. One line: float(accuracy_from_d_prime(bead_d_prime(...))).
+    float(accuracy_from_d_prime(bead_d_prime(n, p_a, p_b, dropout)))
     raise NotImplementedError("Implement me! See docs/s/week06.html — and try before peeking at python/solutions/.")
 
 

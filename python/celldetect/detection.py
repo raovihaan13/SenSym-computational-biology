@@ -41,6 +41,9 @@ def normal_cdf(z) -> np.ndarray:
     # 2. Return 0.5 * (1 + erf(z / np.sqrt(2))).
     # Sanity checks to run yourself: Phi(0) = 0.5, Phi(1.96) ~ 0.975,
     # Phi(-z) = 1 - Phi(z).
+    z = np.asarray(z, dtype=float)
+    return 0.5 * (1 + erf(z / np.sqrt(2)))
+    Phi(-z) = 1 - Phi(z)
     raise NotImplementedError("Implement me! See docs/s/week04.html — and try before peeking at python/solutions/.")
 
 
@@ -66,16 +69,12 @@ def d_prime(lam1, lam2) -> np.ndarray:
     -------
     numpy array of d' values, same shape as the inputs, all >= 0.
     """
-    # --- YOUR CODE HERE ---
-    # 1. Convert both inputs with np.asarray(..., dtype=float).
-    # 2. Compute the pooled mean lbar = (lam1 + lam2) / 2.
-    # 3. A gene silent in both types has lbar = 0, and 0/0 is NaN — which
-    #    would then poison every sum downstream. Define its d' to be 0:
-    #       safe = np.where(lbar > 0, lbar, 1.0)      # a harmless denominator
-    #       return np.where(lbar > 0, |lam1-lam2| / sqrt(safe), 0.0)
-    #    Note WHY the two-step form is needed: np.where evaluates BOTH
-    #    branches, so dividing by lbar directly still emits the warning and
-    #    still produces the NaN before np.where discards it.
+    np.asarray(lam1, dtype=float)
+    np.asarray(lam2, dtype=float)
+    lbar = (lam1 + lam2) / 2
+    safe = np.where(lbar > 0, lbar, 1.0)
+    return np.where(lbar > 0, np.abs(lam1 - lam2) / np.sqrt(safe), 0.0)
+
     raise NotImplementedError("Implement me! See docs/s/week03.html — and try before peeking at python/solutions/.")
 
 
@@ -90,19 +89,16 @@ def combine_d_prime(dprimes: Sequence[float]) -> float:
     — the same exponent as the depth law, from a completely different
     argument. Together: d' ~ sqrt(depth * k).
     """
-    # --- YOUR CODE HERE ---
-    # 1. d = np.asarray(dprimes, dtype=float).
-    # 2. Return float(np.sqrt(np.sum(d ** 2))).
-    #    (Check: [3, 4] must give exactly 5. If your answer is 7 you added
-    #     the d' values instead of their squares — the single most common
-    #     error in Week 5.)
+  
+    d= np.asarray(dprimes, dtype=float)
+    return float(np.sqrt(np.sum(d ** 2)))
     raise NotImplementedError("Implement me! See docs/s/week05.html — and try before peeking at python/solutions/.")
 
 
 def d_prime_total(lam1, lam2) -> float:
     """Total separation over all genes: combine_d_prime(d_prime(lam1, lam2))."""
-    # --- YOUR CODE HERE ---
-    # 1. One line, composing the two functions above.
+    d = d_prime(lam1, lam2)
+    return combine_d_prime(d)
     raise NotImplementedError("Implement me! See docs/s/week05.html — and try before peeking at python/solutions/.")
 
 
@@ -116,10 +112,7 @@ def accuracy_from_d_prime(dp) -> np.ndarray:
 
     Every later figure in the project plots a measurement against this curve.
     """
-    # --- YOUR CODE HERE ---
-    # 1. Return normal_cdf(np.asarray(dp, dtype=float) / 2).
-    #    Check the endpoints yourself: d' = 0 gives 0.5 (chance, as it must),
-    #    and large d' saturates at 1.
+    return normal_cdf(np.asarray(dp, dtype=float) / 2)
     raise NotImplementedError("Implement me! See docs/s/week04.html — and try before peeking at python/solutions/.")
 
 
@@ -141,17 +134,13 @@ def bayes_error_exact(lam1: float, lam2: float, max_k: int = None) -> float:
     lam1, lam2 : the two rates.
     max_k      : where to truncate the sum. None picks a safe default.
     """
-    # --- YOUR CODE HERE ---
-    # 1. If max_k is None, choose it so the neglected tail is negligible:
-    #    ten standard deviations past the larger mean, plus a constant floor
-    #    of ~20 for the small-mean case where the tail is fat relative to
-    #    the mean:  int(big + 10*sqrt(big) + 20)  with big = max(lam1, lam2).
-    # 2. k = np.arange(max_k + 1).
-    # 3. p1 = np.exp(poisson_logpmf(k, lam1)), same for p2.
-    # 4. Return float(0.5 * np.sum(np.minimum(p1, p2))).
-    #    Why the minimum: at each k the optimal rule keeps the larger pmf,
-    #    so the smaller one is exactly the mass it gets wrong.
-    #    Check: lam1 == lam2 must give exactly 0.5.
+    if max_k is None:
+        big = max(lam1, lam2)
+        max_k = int(big + 10 * np.sqrt(big) + 20)
+    k = np.arange(max_k + 1)
+    p1 = np.exp(poisson_logpmf(k, lam1))
+    p2 = np.exp(poisson_logpmf(k, lam2))
+    return float(0.5 * np.sum(np.minimum(p1, p2)))
     raise NotImplementedError("Implement me! See docs/s/week04.html — and try before peeking at python/solutions/.")
 
 
@@ -179,16 +168,10 @@ def log_likelihood_ratio(X, lam1, lam2) -> np.ndarray:
     -------
     numpy array of shape (n_cells,).
     """
-    # --- YOUR CODE HERE ---
-    # 1. Convert X, lam1, lam2 to float arrays.
-    # 2. A rate of exactly 0 under one type makes log(lam1/lam2) infinite.
-    #    Floor both rate vectors at a tiny eps = 1e-12 with np.maximum.
-    #    (Real pipelines add a pseudocount for exactly this reason; Week 10
-    #     asks you to think about what that pseudocount is really assuming.)
-    # 3. The sum over genes is a matrix product. Write it as
-    #       X @ np.log(a / b) - np.sum(a - b)
-    #    and convince yourself the second term is a single scalar that does
-    #    not depend on the cell at all — it only shifts the threshold.
+    X = np.asarray(X, dtype=float)
+    lam1 = np.maximum(np.asarray(lam1, dtype=float), 1e-12)
+    lam2 = np.maximum(np.asarray(lam2, dtype=float), 1e-12)
+    return X @ np.log(lam1 / lam2) - np.sum(lam1 - lam2)
     raise NotImplementedError("Implement me! See docs/s/week05.html — and try before peeking at python/solutions/.")
 
 
@@ -219,17 +202,20 @@ def roc_curve(scores, labels) -> Tuple[np.ndarray, np.ndarray]:
     ------
     ValueError if either class is absent.
     """
-    # --- YOUR CODE HERE ---
-    # 1. order = np.argsort(-scores, kind="mergesort")  — descending, stable.
-    #    Sort BOTH labels and scores by it.
-    # 2. Count P (positives) and N (negatives); raise ValueError if either
-    #    is 0 — an ROC needs both classes to have rates at all.
-    # 3. tp = np.cumsum(y == 1), fp = np.cumsum(y == 0): after consuming the
-    #    first i predictions, these are the counts above the threshold.
-    # 4. Collapse ties: keep only the LAST index of each run of equal scores.
-    #       last_of_tie = np.r_[np.diff(s) != 0, True]
-    # 5. Prepend the origin: tpr = concat([[0.0], tp[last_of_tie] / P]) and
-    #    likewise for fpr. Return (fpr, tpr).
+   
+    order = np.argsort(-scores, kind="mergesort")
+    y = labels[order]
+    s = scores[order]
+    P = np.sum(y == 1)
+    N = np.sum(y == 0)
+    if P == 0 or N == 0:
+        raise ValueError("Both classes must be present to compute an ROC curve.")
+    tp = np.cumsum(y == 1)
+    fp = np.cumsum(y == 0)
+    last_of_tie = np.r_[np.diff(s) != 0, True]
+    tpr = np.concatenate([[0.0], tp[last_of_tie] / P])
+    fpr = np.concatenate([[0.0], fp[last_of_tie] / N])
+    return fpr, tpr
     raise NotImplementedError("Implement me! See docs/s/week04.html — and try before peeking at python/solutions/.")
 
 
@@ -241,11 +227,8 @@ def roc_auc(scores, labels) -> float:
     Gaussian model it equals Phi(d'/sqrt(2)) — a second, threshold-free way
     to read d' off data, which is what makes d_prime_from_auc possible.
     """
-    # --- YOUR CODE HERE ---
-    # 1. fpr, tpr = roc_curve(scores, labels).
-    # 2. Return float(np.trapezoid(tpr, fpr)). (On numpy < 2 the function is
-    #    spelled np.trapz; the solutions file shows the compatible form.)
-    raise NotImplementedError("Implement me! See docs/s/week04.html — and try before peeking at python/solutions/.")
+    fpr, tpr = roc_curve(scores, labels)
+    return float(np.trapezoid(tpr, fpr))
 
 
 def d_prime_from_auc(auc: float) -> float:
@@ -255,11 +238,8 @@ def d_prime_from_auc(auc: float) -> float:
     one: accuracy saturates near 1 and squashes differences, while d' keeps
     growing, so all the project's comparisons are made in d' space.
     """
-    # --- YOUR CODE HERE ---
-    # 1. Clip auc into (0, 1) so the inverse is finite: np.clip(auc, 1e-12,
-    #    1 - 1e-12).
-    # 2. Phi^{-1}(a) = sqrt(2) * erfinv(2a - 1)  (erfinv is imported above).
-    # 3. AUC = Phi(d'/sqrt(2))  =>  d' = sqrt(2) * Phi^{-1}(AUC). Return it.
+    auc = np.clip(auc, 1e-12, 1 - 1e-12)
+    return float(np.sqrt(2) * np.sqrt(2) * erfinv(2 * auc - 1))
     raise NotImplementedError("Implement me! See docs/s/week04.html — and try before peeking at python/solutions/.")
 
 
