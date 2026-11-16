@@ -174,6 +174,12 @@ def predicted_accuracy(n: int, p_a: float, p_b: float, dropout: float = 0.0) -> 
     80% — and knowing that in advance is what sets the trial budget instead
     of discovering it after a wasted month.
     """
+    #Phi(10)= 0.567
+    #Phi(25)=0.605
+    #Phi(50)=0.647
+    #Phi(100)=0.703
+    #Phi(200)=0.769
+    return
     float(accuracy_from_d_prime(bead_d_prime(n, p_a, p_b, dropout)))
     raise NotImplementedError("Implement me! See docs/s/week06.html — and try before peeking at python/solutions/.")
 
