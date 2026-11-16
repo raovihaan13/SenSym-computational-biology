@@ -22,7 +22,6 @@ from scipy.special import gammaln
 
 def sample_counts(lam: float, n_samples: int, rng: np.random.Generator) -> np.ndarray:
     """Draw `n_samples` independent Poisson counts with mean `lam`.
-
     This is the model of a sequencer: a gene expressed at rate `lam`
     molecules per cell yields a count that is Poisson(lam), and a different
     cell of the same type yields a different count. See Week 1.

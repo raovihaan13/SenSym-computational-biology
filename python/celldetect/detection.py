@@ -43,7 +43,6 @@ def normal_cdf(z) -> np.ndarray:
     # Phi(-z) = 1 - Phi(z).
     z = np.asarray(z, dtype=float)
     return 0.5 * (1 + erf(z / np.sqrt(2)))
-    Phi(-z) = 1 - Phi(z)
     raise NotImplementedError("Implement me! See docs/s/week04.html — and try before peeking at python/solutions/.")
 
 
