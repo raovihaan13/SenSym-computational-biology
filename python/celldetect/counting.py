@@ -156,6 +156,7 @@ def downsample_counts(counts, keep_prob: float, rng: np.random.Generator) -> np.
     if np.any(counts < 0):
         raise ValueError("All counts must be non-negative.")
     return rng.binomial(counts.astype(np.int64), keep_prob)
+    return
     raise NotImplementedError("Implement me! See docs/s/week02.html — and try before peeking at python/solutions/.")
 
 
@@ -168,3 +169,4 @@ def empirical_moments(samples: Sequence[float]) -> Tuple[float, float]:
     """[PROVIDED] Return (mean, unbiased variance) of a 1-D sample."""
     x = np.asarray(samples, dtype=float)
     return float(x.mean()), float(x.var(ddof=1))
+#test
