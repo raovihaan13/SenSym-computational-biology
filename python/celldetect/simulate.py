@@ -61,6 +61,13 @@ def marker_profiles(n_genes: int, fold_change: float,
     #       b = 2*base            / (1 + fold_change)
     #    Do this algebra on paper first; it is exercise 7.1.
     # 4. Return (np.full(n_genes, a), np.full(n_genes, b)).
+    n_genes >=1
+    fold_change>0
+    base = marker_mass/n_genes
+    a = 2*base*fold_change / (1 + fold_change)
+    b = 2*base/ (1 + fold_change)
+    return(np.full(n_genes, a), np.full(n_genes, b))
+    
     raise NotImplementedError("Implement me! See docs/s/week07.html — and try before peeking at python/solutions/.")
 
 
@@ -88,7 +95,17 @@ def simulate_cells(profile, depth: float, n_cells: int,
     #     write the loop first if it helps you see it, then replace it.)
     # 4. If dropout > 0, pass X through downsample_counts(X, 1 - dropout, rng).
     # 5. Return X.
-    raise NotImplementedError("Implement me! See docs/s/week07.html — and try before peeking at python/solutions/.")
+    profile = np.asarray(profile, dtype=float)
+    if depth < 0:
+        raise ValueError("depth must be non-negative")
+
+    lam = depth * profile
+    X = rng.poisson(np.broadcast_to(lam, (n_cells, profile.size)))
+
+    if dropout > 0:
+        X = downsample_counts(X, 1 - dropout, rng)
+
+    return X
 
 
 def simulate_dataset(profiles, depth: float, n_cells_per_type: int,
