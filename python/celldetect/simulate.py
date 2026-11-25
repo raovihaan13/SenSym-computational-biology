@@ -132,6 +132,13 @@ def simulate_dataset(profiles, depth: float, n_cells_per_type: int,
     #    destructive bug available in this whole file is a label that no
     #    longer matches its row, and it will not raise, it will just quietly
     #    produce chance accuracy forever.
+    blocks = []
+    labels = []
+    for t, p in enumerate(profiles):
+        block = simulate_cells(p, depth, n_cells_per_type, rng, dropout)
+        blocks.append(block)
+        labels.append(np.full(n_cells_per_type, t, dtype=int))
+    return np.vstack(blocks), np.concatenate(labels)
     raise NotImplementedError("Implement me! See docs/s/week07.html — and try before peeking at python/solutions/.")
 
 
