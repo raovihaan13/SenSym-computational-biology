@@ -250,3 +250,4 @@ def write_tally_template(path: str, run: str, ns, trials_per_n: int,
         w.writeheader()
         w.writerows(rows)
     return path
+
